@@ -1,0 +1,1 @@
+web: bin/mbu_vpngater_bot
