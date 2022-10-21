@@ -3,6 +3,7 @@ package telegram
 import (
 	"log"
 	"mbu_vpngater_bot/vpngate"
+	"os"
 
 	"github.com/yanzay/tbot/v2"
 )
@@ -14,7 +15,7 @@ const (
 )
 
 func StartBot() {
-	bot := tbot.New(TOKEN)
+	bot := tbot.New(TOKEN, tbot.WithWebhook("https://mbugate.herokuapp.com", ":"+os.Getenv("PORT")))
 	c := bot.Client()
 	bot.HandleMessage("/find", func(m *tbot.Message) {
 		for _, v := range vpngate.GetServerList() {
