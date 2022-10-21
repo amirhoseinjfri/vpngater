@@ -4,7 +4,7 @@ import (
 	"log"
 	"mbu_vpngater_bot/vpngate"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/yanzay/tbot/v2"
 )
 
 const (
@@ -14,39 +14,18 @@ const (
 )
 
 func StartBot() {
-	bot, err := tgbotapi.NewBotAPI(TOKEN)
+	bot := tbot.New(TOKEN)
+	c := bot.Client()
+	bot.HandleMessage("/find", func(m *tbot.Message) {
+		for _, v := range vpngate.GetServerList() {
+			c.SendMessage(m.Chat.ID, v)
+		}
+	})
+	bot.HandleMessage(".*.*", func(m *tbot.Message) {
+		c.SendMessage(m.Chat.ID, NO_COMMAND)
+	})
+	err := bot.Start()
 	if err != nil {
-		panic(err)
-	}
-
-	updateConfig := tgbotapi.NewUpdate(0)
-	updateConfig.Timeout = 30
-	updates := bot.GetUpdatesChan(updateConfig)
-
-	for update := range updates {
-		if update.Message == nil {
-			continue
-		}
-		if !update.Message.IsCommand() {
-			continue
-		}
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
-		msg.ReplyToMessageID = update.Message.MessageID
-
-		switch update.Message.Command() {
-		case FIND_COMMAND:
-			for _, v := range vpngate.GetServerList() {
-				msg.Text = v
-				if _, err := bot.Send(msg); err != nil {
-					log.Println(err)
-				}
-			}
-
-		default:
-			msg.Text = NO_COMMAND
-			if _, err := bot.Send(msg); err != nil {
-				log.Println(err)
-			}
-		}
+		log.Fatal(err)
 	}
 }
